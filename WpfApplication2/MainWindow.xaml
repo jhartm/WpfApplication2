@@ -1,0 +1,36 @@
+﻿<Window x:Class="WpfApplication2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converter="clr-namespace:WpfApplication2"
+        Title="MainWindow" Height="350" Width="525">
+    
+    <Window.Resources>
+        <converter:BoolToBrushConverter x:Key="BoolToBrush"
+                                        TrueBrush="Green"
+                                        FalseBrush="Red"/>
+    </Window.Resources>
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <ToggleButton Content="TestMode" IsChecked="{Binding IsTestMode}" Width="100"/>
+            
+            <ToggleButton Content="TestIsBooted" IsChecked="{Binding TestIsBooted, Mode=TwoWay}" Width="100"/>
+            <ToggleButton Content="LiveIsBooted" IsChecked="{Binding LiveIsBooted, Mode=TwoWay}" Width="100"/>
+            <ToggleButton Content="IsBooted" IsChecked="{Binding IsBooted, Mode=TwoWay}" Width="100"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Border Width="100" Height="30" Background="{Binding IsTestMode, Converter={StaticResource BoolToBrush}}"/>
+            <Border Width="100" Height="30" Background="{Binding TestIsBooted, Converter={StaticResource BoolToBrush}}"/>
+            <Border Width="100" Height="30" Background="{Binding LiveIsBooted, Converter={StaticResource BoolToBrush}}"/>
+            <Border Width="100" Height="30" Background="{Binding IsBooted, Converter={StaticResource BoolToBrush}}"/>
+        </StackPanel>
+        <Separator Margin="20"/>
+        <StackPanel>
+            <Button Content="Boot Up" Command="{Binding Boot_Command}"/>
+            <Border Width="100" Height="30" Background="{Binding IsBootedOther, Converter={StaticResource BoolToBrush}}"/>
+        </StackPanel>
+        
+        <Separator Margin="10"/>
+        <converter:PortElement/>
+        <converter:ConnectorElement/>
+    </StackPanel>
+</Window>
