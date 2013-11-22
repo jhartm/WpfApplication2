@@ -10,27 +10,14 @@
                                         FalseBrush="Red"/>
     </Window.Resources>
     <StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <ToggleButton Content="TestMode" IsChecked="{Binding IsTestMode}" Width="100"/>
-            
-            <ToggleButton Content="TestIsBooted" IsChecked="{Binding TestIsBooted, Mode=TwoWay}" Width="100"/>
-            <ToggleButton Content="LiveIsBooted" IsChecked="{Binding LiveIsBooted, Mode=TwoWay}" Width="100"/>
-            <ToggleButton Content="IsBooted" IsChecked="{Binding IsBooted, Mode=TwoWay}" Width="100"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Border Width="100" Height="30" Background="{Binding IsTestMode, Converter={StaticResource BoolToBrush}}"/>
-            <Border Width="100" Height="30" Background="{Binding TestIsBooted, Converter={StaticResource BoolToBrush}}"/>
-            <Border Width="100" Height="30" Background="{Binding LiveIsBooted, Converter={StaticResource BoolToBrush}}"/>
-            <Border Width="100" Height="30" Background="{Binding IsBooted, Converter={StaticResource BoolToBrush}}"/>
-        </StackPanel>
-        <Separator Margin="20"/>
+        <Button Content="Start Test" Command="{Binding CancelTest_Command}" Width="100"/>
+        <Button Content="Cancel" Command="{Binding Cancel_Command}" Width="100"/>
         <StackPanel>
-            <Button Content="Boot Up" Command="{Binding Boot_Command}"/>
-            <Border Width="100" Height="30" Background="{Binding IsBootedOther, Converter={StaticResource BoolToBrush}}"/>
+            <TextBlock Text="{Binding Progress}" Margin="0,0,10,0"/>
+            <TextBlock Text="{Binding ProgressStatus}"/>
         </StackPanel>
-        
-        <Separator Margin="10"/>
-        <converter:PortElement/>
-        <converter:ConnectorElement/>
+        <ProgressBar Minimum="0" Maximum="30" Value="{Binding Progress}" Height="30"/>
+        <Button Content="Find" Command="{Binding Find_Command}"/>
+        <Button Content="Some Test" Command="{Binding Some_Command}" IsEnabled="{Binding IsEnabled}"/>
     </StackPanel>
 </Window>

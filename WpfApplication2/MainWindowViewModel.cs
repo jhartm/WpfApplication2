@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace WpfApplication2
@@ -10,120 +13,80 @@ namespace WpfApplication2
     public class MainWindowViewModel : ObservableObject
     {
         #region Fields
-        private bool _isTestMode;
+        private CancellationTokenSource _tokenSource;
+        private CancellationToken _token;
 
-        private bool _isBooted;
-        private bool _testIsBooted;
-        private bool _liveIsBooted;
+        private int _progress = 0;
+        private string _progressStatus;
+        private bool _isEnabled = true;
 
-        private bool _isBootedOther;
-
-        private DelegateCommand boot_Command;
+        private AsyncDelegateCommand cancelTest_Command;
+        private AsyncDelegateCommand cancel_Command;
+        private DelegateCommand find_Command;
+        private DelegateCommand some_Command;
         #endregion
 
         #region Properties
-        public bool IsTestMode
+        public int Progress
         {
             get
             {
-                return _isTestMode;
+                return _progress;
             }
             set
             {
-                _isTestMode = value;
-                NotifyPropertyChanged();
-
-                if (_isTestMode)
-                {
-                    IsBooted = _testIsBooted;
-                }
-                else
-                {
-                    IsBooted = _liveIsBooted;
-                }
-            }
-        }
-
-        public bool IsBooted
-        {
-            get
-            {
-                return _isBooted;
-            }
-            set
-            {
-                _isBooted = value;
+                _progress = value;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool TestIsBooted
+        public string ProgressStatus
         {
             get
             {
-                return _testIsBooted;
+                return _progressStatus;
             }
             set
             {
-                _testIsBooted = value;
+                _progressStatus = value;
                 NotifyPropertyChanged();
-
-                if (_isTestMode)
-                {
-                    IsBooted = _testIsBooted;
-                }
             }
         }
 
-        public bool LiveIsBooted
+        public bool IsEnabled
         {
             get
             {
-                return _liveIsBooted;
+                return _isEnabled;
             }
             set
             {
-                _liveIsBooted = value;
+                _isEnabled = value;
                 NotifyPropertyChanged();
-
-                if (!_isTestMode)
-                {
-                    IsBooted = _liveIsBooted;
-                }
             }
         }
 
-        public bool IsBootedOther
+        public ICommand Find_Command
         {
             get
             {
-                return _isBootedOther;
-            }
-            set
-            {
-                _isBootedOther = value;
-                NotifyPropertyChanged();
-
-                if (_isTestMode)
+                if (find_Command == null)
                 {
-                    TestIsBooted = _isBootedOther;
+                    find_Command = new DelegateCommand(Find);
                 }
-                else
-                {
-                    LiveIsBooted = _isBootedOther;
-                }
+                return find_Command;
             }
         }
 
-        public ICommand Boot_Command
+        public ICommand Some_Command
         {
             get
             {
-                if (boot_Command == null)
+                if (some_Command == null)
                 {
-                    boot_Command = new DelegateCommand(Boot);
+                    some_Command = new DelegateCommand(Some);
                 }
-                return boot_Command;
+                return some_Command;
             }
         }
         #endregion
@@ -131,20 +94,121 @@ namespace WpfApplication2
         #region Constructor
         public MainWindowViewModel()
         {
-
+            _tokenSource = new CancellationTokenSource();
+            _token = _tokenSource.Token;
         }
         #endregion
 
         #region Methods
-        public void Boot(object obj)
+        public void Some(object obj)
         {
-            if (_isBootedOther)
+            ProgressStatus = "";
+            IsEnabled = false;
+            
+
+            var firstTask = new Task(() => SomeTaskOne(_token), _token);
+            var secondTask = firstTask.ContinueWith((t) => SomeTaskTwo(_token), _token);
+            var thirdTask = secondTask.ContinueWith((t) => SomeTaskThree(_token), _token);
+
+            firstTask.Start();
+
+            if (Progress == 25)
             {
-                IsBootedOther = false;
+                MessageBox.Show("Cancelled");
+                _tokenSource.Cancel();
             }
-            else
+
+            
+        }
+
+        public void CheckToken(CancellationToken token)
+        {
+            if (token.IsCancellationRequested)
             {
-                IsBootedOther = true;
+                token.ThrowIfCancellationRequested();
+            }
+        }
+
+        public void SomeTaskOne(CancellationToken token)
+        {
+            CheckToken(token);
+
+            ProgressStatus = "Starting task one...";
+
+            for (int i = 0; i < 10; i++)
+            {
+                CheckToken(token);
+
+                Thread.Sleep(500);
+                Progress++;
+            }
+        }
+
+        public void SomeTaskTwo(CancellationToken token)
+        {
+            CheckToken(token);
+
+            ProgressStatus = "Starting task two...";
+
+            Thread.Sleep(2000);
+
+            for (int i = 0; i < 10; i++)
+            {
+                CheckToken(token);
+
+                Thread.Sleep(500);
+                Progress++;
+
+                if (Progress == 15)
+                {
+                    MessageBox.Show("Cancelled");
+                    _tokenSource.Cancel();
+                }
+            }
+        }
+
+        public void SomeTaskThree(CancellationToken token)
+        {
+            CheckToken(token);
+
+            ProgressStatus = "Starting task three...";
+
+            Thread.Sleep(2000);
+
+            for (int i = 0; i < 10; i++)
+            {
+                CheckToken(token);
+
+                Thread.Sleep(500);
+                Progress++;
+            }
+
+            IsEnabled = true;
+            ProgressStatus = "Complete";
+        }
+
+        public void Find(object obj)
+        {
+            try
+            {
+
+                Uri uri = new Uri("\\Data\\config.xml", UriKind.RelativeOrAbsolute);
+                MessageBox.Show(uri.ToString());
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        
+
+        private void UpdateProgress(int milliseconds, int value)
+        {
+            for (int i = 0; i < value; i++)
+            {
+                Thread.Sleep(milliseconds / value);
+                Progress++;
             }
         }
         #endregion
