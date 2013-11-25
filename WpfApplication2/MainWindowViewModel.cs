@@ -24,6 +24,7 @@ namespace WpfApplication2
         private AsyncDelegateCommand cancel_Command;
         private DelegateCommand find_Command;
         private DelegateCommand some_Command;
+        private AsynchronousCommand3 test_Command;
         #endregion
 
         #region Properties
@@ -89,6 +90,18 @@ namespace WpfApplication2
                 return some_Command;
             }
         }
+
+        public ICommand Test_Command
+        {
+            get
+            {
+                if (test_Command == null)
+                {
+                    test_Command = new AsynchronousCommand3(Test);
+                }
+                return test_Command;
+            }
+        }
         #endregion
 
         #region Constructor
@@ -100,11 +113,31 @@ namespace WpfApplication2
         #endregion
 
         #region Methods
+        public void Test()
+        {
+            Progress = 0;
+
+            for (int i = 0; i < 100; i++)
+            {
+                if (test_Command.CancelIfRequested())
+                {
+                    return;
+                }
+                Thread.Sleep(500);
+                Progress++;
+
+                if (_progress == 20)
+                {
+                    test_Command.IsCancellationRequested = true;
+                }
+            }
+        }
+
+
         public void Some(object obj)
         {
             ProgressStatus = "";
             IsEnabled = false;
-            
 
             var firstTask = new Task(() => SomeTaskOne(_token), _token);
             var secondTask = firstTask.ContinueWith((t) => SomeTaskTwo(_token), _token);
@@ -112,11 +145,11 @@ namespace WpfApplication2
 
             firstTask.Start();
 
-            if (Progress == 25)
-            {
-                MessageBox.Show("Cancelled");
-                _tokenSource.Cancel();
-            }
+            //if (Progress == 25)
+            //{
+            //    MessageBox.Show("Cancelled");
+            //    _tokenSource.Cancel();
+            //}
 
             
         }
@@ -125,7 +158,15 @@ namespace WpfApplication2
         {
             if (token.IsCancellationRequested)
             {
-                token.ThrowIfCancellationRequested();
+                try
+                {
+
+                    token.ThrowIfCancellationRequested();
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message, "Some exception");
+                }
             }
         }
 

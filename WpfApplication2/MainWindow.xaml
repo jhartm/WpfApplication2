@@ -19,5 +19,7 @@
         <ProgressBar Minimum="0" Maximum="30" Value="{Binding Progress}" Height="30"/>
         <Button Content="Find" Command="{Binding Find_Command}"/>
         <Button Content="Some Test" Command="{Binding Some_Command}" IsEnabled="{Binding IsEnabled}"/>
+        <Button Content="Test" Command="{Binding Test_Command}"/>
+        <Button Content="Cancel" Command="{Binding Test_Command.CancelCommand}"/>
     </StackPanel>
 </Window>
